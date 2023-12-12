@@ -12,7 +12,12 @@ func init() {
 func main() {
 	ctx := context.Background()
 	ctx = slogctx.With(ctx, "foo", "bar")
-	slog.InfoContext(ctx, "hello world")
+
+	// Use slog package directly
+	slog.InfoContext(ctx, "hello world", slog.Bool("baz", true))
+
+	// glog / zap style (note: can't pass additional attributes)
+	slogctx.Errorf(ctx, "hello %s", "world")
 }
 ```
 
