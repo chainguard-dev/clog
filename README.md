@@ -23,5 +23,6 @@ func main() {
 
 ```sh
 $ go run .
-time=2023-12-06T16:29:33.440-07:00 level=INFO msg="hello world" foo=bar
+time=2023-12-12T14:29:02.336-05:00 level=INFO msg="hello world" baz=true foo=bar
+time=2023-12-12T14:29:02.337-05:00 level=ERROR msg="hello world" foo=bar
 ```
