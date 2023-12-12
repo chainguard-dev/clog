@@ -1,5 +1,7 @@
 # slogctx
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/wlynch/slogctx.svg)](https://pkg.go.dev/github.com/wlynch/slogctx)
+
 Context aware slog
 
 ## Usage
