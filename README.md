@@ -33,6 +33,41 @@ func main() {
 2023/12/12 18:27:27 ERROR asdf a=b
 ```
 
+#### Testing
+
+The `slogtest` package provides utilities to make it easy to create loggers that
+will use the native testing logging.
+
+```go
+func TestFoo(t *testing.T) {
+	ctx := slogtest.TestContextWithLogger(t)
+
+	for _, tc := range []string{"a", "b"} {
+		t.Run(tc, func(t *testing.T) {
+			slogctx.FromContext(ctx).Infof("hello world")
+		})
+	}
+}
+```
+
+```sh
+$ go test -v ./examples/logger
+=== RUN   TestLog
+=== RUN   TestLog/a
+=== NAME  TestLog
+    slogtest.go:20: time=2023-12-12T18:42:53.020-05:00 level=INFO msg="hello world"
+
+=== RUN   TestLog/b
+=== NAME  TestLog
+    slogtest.go:20: time=2023-12-12T18:42:53.020-05:00 level=INFO msg="hello world"
+
+--- PASS: TestLog (0.00s)
+    --- PASS: TestLog/a (0.00s)
+    --- PASS: TestLog/b (0.00s)
+PASS
+ok      github.com/wlynch/slogctx/examples/logger
+```
+
 ### Context Handler
 
 The context Handler can be used to insert values from the context.
