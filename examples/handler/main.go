@@ -14,11 +14,15 @@ func init() {
 
 func main() {
 	ctx := context.Background()
-	ctx = slogctx.With(ctx, "foo", "bar")
+	ctx = slogctx.WithValues(ctx, "foo", "bar")
 
 	// Use slog package directly
 	slog.InfoContext(ctx, "hello world", slog.Bool("baz", true))
 
 	// glog / zap style (note: can't pass additional attributes)
-	slogctx.Errorf(ctx, "hello %s", "world")
+	slogctx.Errorf("hello %s", "world")
+
+	log := slogctx.DefaultLogger()
+	log.With("foo", "bar").Infof("hello %s", "world")
+	log.Info("hello world", slog.Bool("baz", true))
 }

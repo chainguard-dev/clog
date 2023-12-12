@@ -13,10 +13,10 @@ type ctxVal map[string]any
 
 // With returns a new context with the given values.
 // Values are expected to be key-value pairs, where the key is a string.
-// e.g. With(ctx, "foo", "bar", "baz", 1)
+// e.g. WithValues(ctx, "foo", "bar", "baz", 1)
 // If a value already exists, it is overwritten.
 // If an odd number of arguments are provided, With panics.
-func With(ctx context.Context, args ...any) context.Context {
+func WithValues(ctx context.Context, args ...any) context.Context {
 	if len(args)%2 != 0 {
 		panic("non-even number of arguments")
 	}
