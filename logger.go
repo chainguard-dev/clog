@@ -41,6 +41,11 @@ func (l *Logger) With(args ...any) *Logger {
 	return NewLogger(l.Logger.With(args...))
 }
 
+// WithGroup calls [Logger.WithGroup] on the default logger.
+func (l *Logger) WithGroup(name string) *Logger {
+	return NewLogger(l.Logger.WithGroup(name))
+}
+
 // Infof logs at LevelInfo with the given format and arguments.
 func (l *Logger) Infof(format string, args ...any) {
 	wrapf(context.Background(), l, slog.LevelInfo, format, args...)
@@ -84,6 +89,10 @@ func (l *Logger) DebugContextf(ctx context.Context, format string, args ...any) 
 // Base returns the underlying [slog.Logger].
 func (l *Logger) Base() *slog.Logger {
 	return &l.Logger
+}
+
+func (l *Logger) Handler() slog.Handler {
+	return l.Logger.Handler()
 }
 
 func wrap(ctx context.Context, logger *Logger, level slog.Level, msg string, args ...any) {
