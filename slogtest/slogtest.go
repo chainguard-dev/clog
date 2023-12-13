@@ -35,3 +35,15 @@ func TestLogger(t Logger) *slogctx.Logger {
 func TestContextWithLogger(t Logger) context.Context {
 	return slogctx.WithLogger(context.Background(), TestLogger(t))
 }
+
+// RemoveTime removes the top-level time attribute.
+// It is intended to be used as a ReplaceAttr function,
+// to make example output deterministic.
+//
+// This is taken from slog/internal/slogtest.RemoveTime.
+func RemoveTime(groups []string, a slog.Attr) slog.Attr {
+	if a.Key == slog.TimeKey && len(groups) == 0 {
+		return slog.Attr{}
+	}
+	return a
+}

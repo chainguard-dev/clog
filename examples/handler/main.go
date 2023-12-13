@@ -21,8 +21,4 @@ func main() {
 
 	// glog / zap style (note: can't pass additional attributes)
 	slogctx.Errorf("hello %s", "world")
-
-	log := slogctx.DefaultLogger()
-	log.With("foo", "bar").Infof("hello %s", "world")
-	log.Info("hello world", slog.Bool("baz", true))
 }

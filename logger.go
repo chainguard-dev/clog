@@ -91,6 +91,7 @@ func (l *Logger) Base() *slog.Logger {
 	return &l.Logger
 }
 
+// Handler returns the underlying [slog.Handler].
 func (l *Logger) Handler() slog.Handler {
 	return l.Logger.Handler()
 }

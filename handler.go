@@ -51,7 +51,7 @@ func get(ctx context.Context) ctxVal {
 }
 
 // Handler is a slog.Handler that adds context values to the log record.
-// Values are added via [With].
+// Values are added via [WithValues].
 type Handler struct {
 	h slog.Handler
 }
