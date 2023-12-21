@@ -3,8 +3,8 @@ package main
 import (
 	"testing"
 
-	"github.com/wlynch/slogctx"
-	"github.com/wlynch/slogctx/slogtest"
+	"github.com/chainguard-dev/slogctx"
+	"github.com/chainguard-dev/slogctx/slogtest"
 )
 
 func TestFoo(t *testing.T) {

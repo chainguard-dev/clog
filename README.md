@@ -1,6 +1,6 @@
 # slogctx
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/wlynch/slogctx.svg)](https://pkg.go.dev/github.com/wlynch/slogctx)
+[![Go Reference](https://pkg.go.dev/badge/github.com/chainguard-dev/slogctx.svg)](https://pkg.go.dev/github.com/chainguard-dev/slogctx)
 
 Context aware slog
 
@@ -65,7 +65,7 @@ $ go test -v ./examples/logger
     --- PASS: TestLog/a (0.00s)
     --- PASS: TestLog/b (0.00s)
 PASS
-ok      github.com/wlynch/slogctx/examples/logger
+ok      github.com/chainguard-dev/slogctx/examples/logger
 ```
 
 ### Context Handler

@@ -5,7 +5,7 @@ import (
 	"io"
 	"log/slog"
 
-	"github.com/wlynch/slogctx"
+	"github.com/chainguard-dev/slogctx"
 )
 
 var (

@@ -108,7 +108,7 @@ func TestLoggerPC(t *testing.T) {
 		t.Fatal(err)
 	}
 	// Knowing that the PC is from this test is good enough.
-	want := fmt.Sprintf("github.com/wlynch/slogctx.%s", t.Name())
+	want := fmt.Sprintf("github.com/chainguard-dev/slogctx.%s", t.Name())
 	if got.Source.Function != want {
 		t.Errorf("want %v, got %v", want, got)
 	}
