@@ -5,7 +5,7 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/wlynch/slogctx"
+	"github.com/chainguard-dev/slogctx"
 )
 
 func init() {
