@@ -4,7 +4,7 @@ import (
 	"context"
 	"log/slog"
 
-	"github.com/wlynch/slogctx"
+	"github.com/chainguard-dev/slogctx"
 )
 
 func main() {
