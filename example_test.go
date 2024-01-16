@@ -10,17 +10,17 @@ import (
 )
 
 func ExampleHandler() {
-	log := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+	log := slog.New(slogctx.NewHandler(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
 		// Remove time for repeatable results
 		ReplaceAttr: slogtest.RemoveTime,
-	}))
+	})))
 
 	ctx := context.Background()
 	ctx = slogctx.WithValues(ctx, "foo", "bar")
 	log.InfoContext(ctx, "hello world", slog.Bool("baz", true))
 
 	// Output:
-	// level=INFO msg="hello world" baz=true
+	// level=INFO msg="hello world" baz=true foo=bar
 }
 
 func ExampleLogger() {
