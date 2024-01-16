@@ -18,7 +18,7 @@ This approach is heavily inspired by
 ```go
 func main() {
 	log := clog.New(slog.Default).With("a", "b")
-	ctx := clog.WithLogger(log)
+	ctx := clog.WithLogger(context.Background(), log)
 
 	// Grab logger from context and use
 	clog.FromContext(ctx).With("foo", "bar").Infof("hello world")
