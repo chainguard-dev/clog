@@ -142,10 +142,7 @@ func WithLogger(ctx context.Context, logger *Logger) context.Context {
 
 func FromContext(ctx context.Context) *Logger {
 	if logger, ok := ctx.Value(loggerKey{}).(*Logger); ok {
-		logger.ctx = ctx
-		return logger
+		return &Logger{Logger: logger.Logger, ctx: ctx}
 	}
-	l := DefaultLogger()
-	l.ctx = ctx
-	return l
+	return &Logger{Logger: DefaultLogger().Logger, ctx: ctx}
 }
