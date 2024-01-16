@@ -1,6 +1,6 @@
-# slogctx
+# clog
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/chainguard-dev/slogctx.svg)](https://pkg.go.dev/github.com/chainguard-dev/slogctx)
+[![Go Reference](https://pkg.go.dev/badge/github.com/chainguard-dev/clog.svg)](https://pkg.go.dev/github.com/chainguard-dev/clog)
 
 Context aware slog
 
@@ -17,14 +17,14 @@ This approach is heavily inspired by
 
 ```go
 func main() {
-	log := slogctx.New(slog.Default).With("a", "b")
-	ctx := slogctx.WithLogger(log)
+	log := clog.New(slog.Default).With("a", "b")
+	ctx := clog.WithLogger(context.Background(), log)
 
 	// Grab logger from context and use
-	slogctx.FromContext(ctx).With("foo", "bar").Infof("hello world")
+	clog.FromContext(ctx).With("foo", "bar").Infof("hello world")
 
 	// Package level context loggers are also aware
-	slogctx.ErrorContext(ctx, "asdf")
+	clog.ErrorContext(ctx, "asdf")
 }
 ```
 
@@ -44,7 +44,7 @@ func TestFoo(t *testing.T) {
 
 	for _, tc := range []string{"a", "b"} {
 		t.Run(tc, func(t *testing.T) {
-			slogctx.FromContext(ctx).Infof("hello world")
+			clog.FromContext(ctx).Infof("hello world")
 		})
 	}
 }
@@ -65,7 +65,7 @@ $ go test -v ./examples/logger
     --- PASS: TestLog/a (0.00s)
     --- PASS: TestLog/b (0.00s)
 PASS
-ok      github.com/chainguard-dev/slogctx/examples/logger
+ok      github.com/chainguard-dev/clog/examples/logger
 ```
 
 ### Context Handler
@@ -74,18 +74,18 @@ The context Handler can be used to insert values from the context.
 
 ```go
 func init() {
-	slog.SetDefault(slog.New(slogctx.NewHandler(slog.NewTextHandler(os.Stdout, nil))))
+	slog.SetDefault(slog.New(clog.NewHandler(slog.NewTextHandler(os.Stdout, nil))))
 }
 
 func main() {
 	ctx := context.Background()
-	ctx = slogctx.WithValue(ctx, "foo", "bar")
+	ctx = clog.WithValue(ctx, "foo", "bar")
 
 	// Use slog package directly
 	slog.InfoContext(ctx, "hello world", slog.Bool("baz", true))
 
 	// glog / zap style (note: can't pass additional attributes)
-	slogctx.Errorf(ctx, "hello %s", "world")
+	clog.Errorf(ctx, "hello %s", "world")
 }
 ```
 

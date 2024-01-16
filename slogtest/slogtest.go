@@ -5,7 +5,7 @@ import (
 	"io"
 	"log/slog"
 
-	"github.com/chainguard-dev/slogctx"
+	"github.com/chainguard-dev/clog"
 )
 
 var (
@@ -27,13 +27,13 @@ type Logger interface {
 }
 
 // TestLogger gets a logger to use in unit and end to end tests
-func TestLogger(t Logger) *slogctx.Logger {
-	return slogctx.New(slog.NewTextHandler(&logAdapter{l: t}, nil))
+func TestLogger(t Logger) *clog.Logger {
+	return clog.New(slog.NewTextHandler(&logAdapter{l: t}, nil))
 }
 
 // TestContextWithLogger returns a context with a logger to be used in tests
 func TestContextWithLogger(t Logger) context.Context {
-	return slogctx.WithLogger(context.Background(), TestLogger(t))
+	return clog.WithLogger(context.Background(), TestLogger(t))
 }
 
 // RemoveTime removes the top-level time attribute.

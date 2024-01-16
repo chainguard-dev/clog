@@ -1,4 +1,4 @@
-package slogctx
+package clog
 
 import (
 	"bytes"
@@ -76,7 +76,7 @@ func TestLoggerFromContext(t *testing.T) {
 
 	b.Reset()
 
-	t.Run("slogctx.Info", func(t *testing.T) {
+	t.Run("clog.Info", func(t *testing.T) {
 		InfoContext(ctx, "")
 		var got map[string]any
 		if err := json.Unmarshal(b.Bytes(), &got); err != nil {
@@ -108,7 +108,7 @@ func TestLoggerPC(t *testing.T) {
 		t.Fatal(err)
 	}
 	// Knowing that the PC is from this test is good enough.
-	want := fmt.Sprintf("github.com/chainguard-dev/slogctx.%s", t.Name())
+	want := fmt.Sprintf("github.com/chainguard-dev/clog.%s", t.Name())
 	if got.Source.Function != want {
 		t.Errorf("want %v, got %v", want, got)
 	}
