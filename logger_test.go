@@ -113,3 +113,32 @@ func TestLoggerPC(t *testing.T) {
 		t.Errorf("want %v, got %v", want, got)
 	}
 }
+
+func TestContext(t *testing.T) {
+	// Stuff some data in the context, to check that it gets passed through to the slog handler.
+	h := &testHandler{t: t}
+	ctx := context.Background()
+	ctx = context.WithValue(ctx, logKey{}, "value")
+	ctx = WithLogger(ctx, NewLogger(slog.New(h)))
+
+	// Calling InfoContext uses the context passed explicitly.
+	FromContext(ctx).InfoContext(ctx, "with explicit context")
+
+	// Calling context-less Info and Infof uses the context from FromContext.
+	FromContext(ctx).Info("with implicit context")
+	FromContext(ctx).Infof("with implicit context %q", "and format")
+}
+
+type logKey struct{}
+
+type testHandler struct{ t *testing.T }
+
+func (_ *testHandler) Enabled(context.Context, slog.Level) bool { return true }
+func (t *testHandler) WithAttrs(attrs []slog.Attr) slog.Handler { return t }
+func (t *testHandler) WithGroup(name string) slog.Handler       { return t }
+func (t *testHandler) Handle(ctx context.Context, r slog.Record) error {
+	if got := ctx.Value(logKey{}); got != "value" {
+		t.t.Errorf("%s: expected value, got %v", r.Message, got)
+	}
+	return nil
+}

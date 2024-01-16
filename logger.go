@@ -11,6 +11,7 @@ import (
 // Logger implements a wrapper around [slog.Logger] that adds formatter functions (e.g. Infof, Errorf)
 type Logger struct {
 	slog.Logger
+	ctx context.Context
 }
 
 // DefaultLogger returns a new logger that uses the default [slog.Logger].
@@ -23,7 +24,7 @@ func NewLogger(l *slog.Logger) *Logger {
 	if l == nil {
 		l = slog.Default()
 	}
-	return &Logger{Logger: *l}
+	return &Logger{Logger: *l, ctx: context.Background()}
 }
 
 // New returns a new logger that wraps the given [slog.Handler].
@@ -46,9 +47,14 @@ func (l *Logger) WithGroup(name string) *Logger {
 	return NewLogger(l.Logger.WithGroup(name))
 }
 
+// Info logs at LevelInfo with the given message and args.
+func (l *Logger) Info(msg string, args ...any) {
+	wrap(l.ctx, l, slog.LevelInfo, msg, args...)
+}
+
 // Infof logs at LevelInfo with the given format and arguments.
 func (l *Logger) Infof(format string, args ...any) {
-	wrapf(context.Background(), l, slog.LevelInfo, format, args...)
+	wrapf(l.ctx, l, slog.LevelInfo, format, args...)
 }
 
 // InfoContextf logs at LevelInfo with the given context, format and arguments.
@@ -56,9 +62,14 @@ func (l *Logger) InfoContextf(ctx context.Context, format string, args ...any) {
 	wrapf(ctx, l, slog.LevelInfo, format, args...)
 }
 
+// Warn logs at LevelWarn with the given message and args.
+func (l *Logger) Warn(msg string, args ...any) {
+	wrap(l.ctx, l, slog.LevelWarn, msg, args...)
+}
+
 // Warnf logs at LevelWarn with the given format and arguments.
 func (l *Logger) Warnf(format string, args ...any) {
-	wrapf(context.Background(), l, slog.LevelWarn, format, args...)
+	wrapf(l.ctx, l, slog.LevelWarn, format, args...)
 }
 
 // WarnContextf logs at LevelWarn with the given context, format and arguments.
@@ -68,7 +79,12 @@ func (l *Logger) WarnContextf(ctx context.Context, format string, args ...any) {
 
 // Errorf logs at LevelError with the given format and arguments.
 func (l *Logger) Errorf(format string, args ...any) {
-	wrapf(context.Background(), l, slog.LevelError, format, args...)
+	wrapf(l.ctx, l, slog.LevelError, format, args...)
+}
+
+// Error logs at LevelError with the given message and args.
+func (l *Logger) Error(msg string, args ...any) {
+	wrap(l.ctx, l, slog.LevelError, msg, args...)
 }
 
 // ErrorContextf logs at LevelError with the given context, format and arguments.
@@ -78,7 +94,12 @@ func (l *Logger) ErrorContextf(ctx context.Context, format string, args ...any) 
 
 // Debugf logs at LevelDebug with the given format and arguments.
 func (l *Logger) Debugf(format string, args ...any) {
-	wrapf(context.Background(), l, slog.LevelDebug, format, args...)
+	wrapf(l.ctx, l, slog.LevelDebug, format, args...)
+}
+
+// Debug logs at LevelDebug with the given message and args.
+func (l *Logger) Debug(msg string, args ...any) {
+	wrap(l.ctx, l, slog.LevelDebug, msg, args...)
 }
 
 // DebugContextf logs at LevelDebug with the given context, format and arguments.
@@ -121,7 +142,10 @@ func WithLogger(ctx context.Context, logger *Logger) context.Context {
 
 func FromContext(ctx context.Context) *Logger {
 	if logger, ok := ctx.Value(loggerKey{}).(*Logger); ok {
+		logger.ctx = ctx
 		return logger
 	}
-	return DefaultLogger()
+	l := DefaultLogger()
+	l.ctx = ctx
+	return l
 }
