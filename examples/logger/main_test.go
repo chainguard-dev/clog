@@ -3,8 +3,8 @@ package main
 import (
 	"testing"
 
-	"github.com/chainguard-dev/slogctx"
-	"github.com/chainguard-dev/slogctx/slogtest"
+	"github.com/chainguard-dev/clog"
+	"github.com/chainguard-dev/clog/slogtest"
 )
 
 func TestFoo(t *testing.T) {
@@ -12,7 +12,7 @@ func TestFoo(t *testing.T) {
 
 	for _, tc := range []string{"a", "b"} {
 		t.Run(tc, func(t *testing.T) {
-			slogctx.FromContext(ctx).Infof("hello world")
+			clog.FromContext(ctx).Infof("hello world")
 		})
 	}
 }
