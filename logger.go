@@ -94,8 +94,8 @@ func (l *Logger) Fatalf(format string, args ...any) {
 }
 
 // Fatal logs at LevelError with the given message, then exits.
-func (l *Logger) Fatal(msg string) {
-	wrapf(context.Background(), l, slog.LevelError, msg)
+func (l *Logger) Fatal(msg string, args ...any) {
+	wrap(context.Background(), l, slog.LevelError, msg, args...)
 	os.Exit(1)
 }
 
