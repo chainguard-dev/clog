@@ -1,8 +1,8 @@
-# clog
+# 👞 clog
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/chainguard-dev/clog.svg)](https://pkg.go.dev/github.com/chainguard-dev/clog)
 
-Context aware slog
+Context-aware [`slog`](https://pkg.go.dev/log/slog)
 
 ## Usage
 
@@ -13,24 +13,52 @@ sometimes preferred over the [Context Handler](#context-handler), since this can
 make it easier to use different loggers in different contexts (e.g. testing).
 
 This approach is heavily inspired by
-[knative.dev/pkg/logging](https://pkg.go.dev/knative.dev/pkg/logging)
+[`knative.dev/pkg/logging`](https://pkg.go.dev/knative.dev/pkg/logging), but with [zero dependencies outside the standard library](https://github.com/chainguard-dev/clog/blob/main/go.mod) (compare with [`pkg/logging`'s deps](https://pkg.go.dev/knative.dev/pkg/logging?tab=imports)).
 
 ```go
+package main
+
+import (
+	"context"
+	"log/slog"
+
+	"github.com/chainguard-dev/clog"
+)
+
 func main() {
-	log := clog.New(slog.Default).With("a", "b")
+	// One-time setup
+	log := clog.New(slog.Default().Handler()).With("a", "b")
 	ctx := clog.WithLogger(context.Background(), log)
 
-	// Grab logger from context and use
-	clog.FromContext(ctx).With("foo", "bar").Infof("hello world")
+	f(ctx)
+}
+
+func f(ctx context.Context) {
+	// Grab logger from context and use.
+	log := clog.FromContext(ctx)
+	log.Info("in f")
+
+	// Add logging context and pass on.
+	ctx = clog.WithLogger(ctx, log.With("f", "hello"))
+	g(ctx)
+}
+
+func g(ctx context.Context) {
+	// Grab logger from context and use.
+	log := clog.FromContext(ctx)
+	log.Info("in g")
 
 	// Package level context loggers are also aware
 	clog.ErrorContext(ctx, "asdf")
 }
+
 ```
 
 ```sh
-2023/12/12 18:27:27 INFO hello world a=b foo=bar
-2023/12/12 18:27:27 ERROR asdf a=b
+$ go run .
+2009/11/10 23:00:00 INFO in f a=b
+2009/11/10 23:00:00 INFO in g a=b f=hello
+2009/11/10 23:00:00 ERROR asdf a=b f=hello
 ```
 
 #### Testing
@@ -79,18 +107,18 @@ func init() {
 
 func main() {
 	ctx := context.Background()
-	ctx = clog.WithValue(ctx, "foo", "bar")
+	ctx = clog.WithValues(ctx, "foo", "bar")
 
 	// Use slog package directly
 	slog.InfoContext(ctx, "hello world", slog.Bool("baz", true))
 
 	// glog / zap style (note: can't pass additional attributes)
-	clog.Errorf(ctx, "hello %s", "world")
+	clog.ErrorContextf(ctx, "hello %s", "world")
 }
 ```
 
 ```sh
 $ go run .
-time=2023-12-12T14:29:02.336-05:00 level=INFO msg="hello world" baz=true foo=bar
-time=2023-12-12T14:29:02.337-05:00 level=ERROR msg="hello world" foo=bar
+time=2009-11-10T23:00:00.000Z level=INFO msg="hello world" baz=true foo=bar
+time=2009-11-10T23:00:00.000Z level=ERROR msg="hello world" foo=bar
 ```
