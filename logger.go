@@ -106,8 +106,8 @@ func (l *Logger) FatalContextf(ctx context.Context, format string, args ...any) 
 }
 
 // FatalfContext logs at LevelError with the given context and message, then exits.
-func (l *Logger) FatalContext(ctx context.Context, msg string) {
-	wrapf(ctx, l, slog.LevelError, msg)
+func (l *Logger) FatalContext(ctx context.Context, msg string, args ...any) {
+	wrap(ctx, l, slog.LevelError, msg, args...)
 	os.Exit(1)
 }
 
