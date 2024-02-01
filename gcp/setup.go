@@ -1,4 +1,4 @@
-package gcpslog
+package gcp
 
 import (
 	"context"
