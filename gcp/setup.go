@@ -11,12 +11,14 @@ const LevelCritical = slog.Level(12)
 
 // Handler that outputs JSON understood by the structured log agent.
 // See https://cloud.google.com/logging/docs/agent/logging/configuration#special-fields
-type Handler struct{ handler slog.Handler }
+type Handler struct {
+	handler slog.Handler
+}
 
-func NewHandler() *Handler {
+func NewHandler(level slog.Level) *Handler {
 	return &Handler{handler: slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{
 		AddSource: true,
-		Level:     slog.LevelDebug,
+		Level:     level,
 		ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
 			if a.Key == slog.MessageKey {
 				a.Key = "message"
