@@ -7,14 +7,16 @@ import (
 	"os"
 
 	"github.com/chainguard-dev/clog"
+	"github.com/chainguard-dev/clog/slag"
 )
 
 func main() {
-	level := clog.LevelFlag("log-level", slog.LevelInfo, "log level")
+	level := slag.Level(slog.LevelInfo)
+	flag.Var(&level, "log-level", "log level")
 	flag.Parse()
 
 	slog.SetDefault(slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
-		Level: slog.Level(level.Get()),
+		Level: &level,
 	})))
 
 	log := clog.NewLogger(slog.Default()).With("a", "b")
