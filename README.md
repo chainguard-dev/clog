@@ -4,6 +4,8 @@
 
 Context-aware [`slog`](https://pkg.go.dev/log/slog)
 
+`slog` was added in Go 1.21, so using this requires Go 1.21 or later.
+
 ## Usage
 
 ### Context Logger
@@ -122,3 +124,9 @@ $ go run .
 time=2009-11-10T23:00:00.000Z level=INFO msg="hello world" baz=true foo=bar
 time=2009-11-10T23:00:00.000Z level=ERROR msg="hello world" foo=bar
 ```
+
+### Google Cloud Platform support
+
+This package also provides a GCP-optimized JSON handler for structured logging and trace attribution.
+
+See [`./gcp/README.md`](./gcp/README.md) for details.
