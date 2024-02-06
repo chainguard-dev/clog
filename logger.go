@@ -97,6 +97,10 @@ func (l *Logger) Handler() slog.Handler {
 }
 
 func wrap(ctx context.Context, logger *Logger, level slog.Level, msg string, args ...any) {
+	if !logger.Handler().Enabled(ctx, level) {
+		return
+	}
+
 	var pcs [1]uintptr
 	runtime.Callers(3, pcs[:]) // skip [Callers, Infof, wrapf]
 	r := slog.NewRecord(time.Now(), level, msg, pcs[0])
@@ -107,6 +111,10 @@ func wrap(ctx context.Context, logger *Logger, level slog.Level, msg string, arg
 // wrapf is like wrap, but uses fmt.Sprintf to format the message.
 // NOTE: args are passed to fmt.Sprintf, not as [slog.Attr].
 func wrapf(ctx context.Context, logger *Logger, level slog.Level, format string, args ...any) {
+	if !logger.Handler().Enabled(ctx, level) {
+		return
+	}
+
 	var pcs [1]uintptr
 	runtime.Callers(3, pcs[:]) // skip [Callers, Infof, wrapf]
 	r := slog.NewRecord(time.Now(), level, fmt.Sprintf(format, args...), pcs[0])
