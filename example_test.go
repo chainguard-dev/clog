@@ -42,3 +42,17 @@ func ExampleLogger() {
 	// level=INFO msg="hello world" a=b foo=bar
 	// level=ERROR msg=asdf a=b baz=true
 }
+
+func ExampleFromContext_preserveContext() {
+	log := clog.NewLogger(slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+		// Remove time for repeatable results
+		ReplaceAttr: slogtest.RemoveTime,
+	}))).With("foo", "bar")
+	ctx := clog.WithLogger(context.Background(), log)
+
+	// Previous context values are preserved when using FromContext
+	clog.FromContext(ctx).Info("hello world")
+
+	// Output:
+	// level=INFO msg="hello world" foo=bar
+}
