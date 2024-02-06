@@ -11,13 +11,11 @@ import (
 )
 
 func main() {
-	level := slag.Level(slog.LevelInfo)
+	var level slag.Level
 	flag.Var(&level, "log-level", "log level")
 	flag.Parse()
 
-	slog.SetDefault(slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
-		Level: &level,
-	})))
+	slog.SetDefault(slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: &level})))
 
 	log := clog.NewLogger(slog.Default()).With("a", "b")
 	ctx := clog.WithLogger(context.Background(), log)
