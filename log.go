@@ -3,6 +3,7 @@ package clog
 import (
 	"context"
 	"log/slog"
+	"os"
 )
 
 // Info calls Info on the default logger.
@@ -88,4 +89,28 @@ func Debugf(format string, args ...any) {
 // If a Logger is found in the context, it will be used.
 func DebugContextf(ctx context.Context, format string, args ...any) {
 	wrapf(ctx, FromContext(ctx), slog.LevelDebug, format, args...)
+}
+
+// Fatal calls Error on the default logger, then exits.
+func Fatal(msg string, args ...any) {
+	wrap(context.Background(), DefaultLogger(), slog.LevelError, msg, args...)
+	os.Exit(1)
+}
+
+// FatalContext calls ErrorContext on the context logger, then exits.
+func FatalContext(ctx context.Context, msg string, args ...any) {
+	wrap(ctx, FromContext(ctx), slog.LevelError, msg, args...)
+	os.Exit(1)
+}
+
+// Fatalf calls Errorf on the default logger, then exits.
+func Fatalf(format string, args ...any) {
+	wrapf(context.Background(), DefaultLogger(), slog.LevelError, format, args...)
+	os.Exit(1)
+}
+
+// FatalContextf calls ErrorContextf on the context logger, then exits.
+func FatalContextf(ctx context.Context, format string, args ...any) {
+	wrapf(ctx, FromContext(ctx), slog.LevelError, format, args...)
+	os.Exit(1)
 }

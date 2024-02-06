@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"os"
 	"runtime"
 	"time"
 )
@@ -84,6 +85,30 @@ func (l *Logger) Debugf(format string, args ...any) {
 // DebugContextf logs at LevelDebug with the given context, format and arguments.
 func (l *Logger) DebugContextf(ctx context.Context, format string, args ...any) {
 	wrapf(ctx, l, slog.LevelDebug, format, args...)
+}
+
+// Fatalf logs at LevelError with the given format and arguments, then exits.
+func (l *Logger) Fatalf(format string, args ...any) {
+	wrapf(context.Background(), l, slog.LevelError, format, args...)
+	os.Exit(1)
+}
+
+// Fatal logs at LevelError with the given message, then exits.
+func (l *Logger) Fatal(msg string, args ...any) {
+	wrap(context.Background(), l, slog.LevelError, msg, args...)
+	os.Exit(1)
+}
+
+// FatalfContextf logs at LevelError with the given context, format and arguments, then exits.
+func (l *Logger) FatalContextf(ctx context.Context, format string, args ...any) {
+	wrapf(ctx, l, slog.LevelError, format, args...)
+	os.Exit(1)
+}
+
+// FatalfContext logs at LevelError with the given context and message, then exits.
+func (l *Logger) FatalContext(ctx context.Context, msg string, args ...any) {
+	wrap(ctx, l, slog.LevelError, msg, args...)
+	os.Exit(1)
 }
 
 // Base returns the underlying [slog.Logger].
