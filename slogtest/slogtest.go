@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 	"log/slog"
+	"strings"
 
 	"github.com/chainguard-dev/clog"
 )
@@ -17,7 +18,7 @@ type logAdapter struct {
 }
 
 func (l *logAdapter) Write(b []byte) (int, error) {
-	l.l.Log(string(b))
+	l.l.Log(strings.TrimSuffix(string(b), "\n"))
 	return len(b), nil
 }
 
