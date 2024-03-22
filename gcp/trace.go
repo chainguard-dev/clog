@@ -12,6 +12,9 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"go.opentelemetry.io/otel/trace"
+	"google.golang.org/grpc"
 )
 
 func insideTest() bool {
@@ -42,16 +45,13 @@ var (
 	lookupOnce sync.Once
 )
 
-// WithCloudTraceContext returns an http.handler that adds the GCP Cloud Trace
-// ID to the context. This is used to correlate the structured logs with the
-// request log.
-func WithCloudTraceContext(h http.Handler) http.Handler {
-	// Get the project ID from the environment if specified
-	fromEnv := os.Getenv("GOOGLE_CLOUD_PROJECT")
-	if fromEnv != "" {
-		projectID = fromEnv
-	} else {
-		lookupOnce.Do(func() {
+func extractProjectID() string {
+	lookupOnce.Do(func() {
+		// Get the project ID from the environment if specified
+		fromEnv := os.Getenv("GOOGLE_CLOUD_PROJECT")
+		if fromEnv != "" {
+			projectID = fromEnv
+		} else {
 			if insideTest() {
 				slog.Debug("WithCloudTraceContext: inside test, not looking up project ID")
 				return
@@ -90,9 +90,16 @@ func WithCloudTraceContext(h http.Handler) http.Handler {
 				return
 			}
 			projectID = string(all)
-		})
-	}
+		}
+	})
+	return projectID
+}
 
+// WithCloudTraceContext returns an http.handler that adds the GCP Cloud Trace
+// ID to the context. This is used to correlate the structured logs with the
+// request log.
+func WithCloudTraceContext(h http.Handler) http.Handler {
+	projectID := extractProjectID()
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if projectID != "" {
 			var trace string
@@ -105,6 +112,22 @@ func WithCloudTraceContext(h http.Handler) http.Handler {
 		}
 		h.ServeHTTP(w, r)
 	})
+}
+
+// CloudTraceContextUnaryInterceptor is a gRPC unary interceptor that adds the
+// Cloud Trace ID to the context. This is used to correlate the structured
+// logs with the request log.
+func CloudTraceContextUnaryInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
+	projectID := extractProjectID()
+	if projectID != "" {
+		// extract the trace header from the incoming request
+		span := trace.SpanFromContext(ctx)
+		if traceId := span.SpanContext().TraceID().String(); traceId != "" {
+			trace := fmt.Sprintf("projects/%s/traces/%s", projectID, traceId)
+			ctx = context.WithValue(ctx, "trace", trace)
+		}
+	}
+	return handler(ctx, req)
 }
 
 func traceFromContext(ctx context.Context) string {
