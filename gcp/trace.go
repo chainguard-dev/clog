@@ -46,51 +46,51 @@ var (
 )
 
 func extractProjectID() string {
+	// Get the project ID from the environment if specified
+	fromEnv := os.Getenv("GOOGLE_CLOUD_PROJECT")
+	if fromEnv != "" {
+		projectID = fromEnv
+		return projectID
+	}
 	lookupOnce.Do(func() {
-		// Get the project ID from the environment if specified
-		fromEnv := os.Getenv("GOOGLE_CLOUD_PROJECT")
-		if fromEnv != "" {
-			projectID = fromEnv
-		} else {
-			if insideTest() {
-				slog.Debug("WithCloudTraceContext: inside test, not looking up project ID")
-				return
-			}
-
-			// By default use the metadata IP; otherwise use the environment variable
-			// for consistency with https://pkg.go.dev/cloud.google.com/go/compute/metadata#Client.Get
-			host := "169.254.169.254"
-			if h := os.Getenv("GCE_METADATA_HOST"); h != "" {
-				host = h
-			}
-			req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("http://%s/computeMetadata/v1/project/project-id", host), nil)
-			if err != nil {
-				slog.Debug("WithCloudTraceContext: could not get GCP project ID from metadata server", "err", err)
-				return
-			}
-			req.Header.Set("Metadata-Flavor", "Google")
-			resp, err := (&http.Client{ // Timeouts copied from https://pkg.go.dev/cloud.google.com/go/compute/metadata#Get
-				Transport: &http.Transport{
-					Dial: (&net.Dialer{Timeout: 2 * time.Second}).Dial,
-				},
-				Timeout: 5 * time.Second,
-			}).Do(req)
-			if err != nil {
-				slog.Debug("WithCloudTraceContext: could not get GCP project ID from metadata server", "err", err)
-				return
-			}
-			if resp.StatusCode != http.StatusOK {
-				slog.Debug("WithCloudTraceContext: could not get GCP project ID from metadata server", "code", resp.StatusCode, "status", resp.Status)
-				return
-			}
-			defer resp.Body.Close()
-			all, err := io.ReadAll(resp.Body)
-			if err != nil {
-				slog.Debug("WithCloudTraceContext: could not get GCP project ID from metadata server", "err", err)
-				return
-			}
-			projectID = string(all)
+		if insideTest() {
+			slog.Debug("WithCloudTraceContext: inside test, not looking up project ID")
+			return
 		}
+
+		// By default use the metadata IP; otherwise use the environment variable
+		// for consistency with https://pkg.go.dev/cloud.google.com/go/compute/metadata#Client.Get
+		host := "169.254.169.254"
+		if h := os.Getenv("GCE_METADATA_HOST"); h != "" {
+			host = h
+		}
+		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("http://%s/computeMetadata/v1/project/project-id", host), nil)
+		if err != nil {
+			slog.Debug("WithCloudTraceContext: could not get GCP project ID from metadata server", "err", err)
+			return
+		}
+		req.Header.Set("Metadata-Flavor", "Google")
+		resp, err := (&http.Client{ // Timeouts copied from https://pkg.go.dev/cloud.google.com/go/compute/metadata#Get
+			Transport: &http.Transport{
+				Dial: (&net.Dialer{Timeout: 2 * time.Second}).Dial,
+			},
+			Timeout: 5 * time.Second,
+		}).Do(req)
+		if err != nil {
+			slog.Debug("WithCloudTraceContext: could not get GCP project ID from metadata server", "err", err)
+			return
+		}
+		if resp.StatusCode != http.StatusOK {
+			slog.Debug("WithCloudTraceContext: could not get GCP project ID from metadata server", "code", resp.StatusCode, "status", resp.Status)
+			return
+		}
+		defer resp.Body.Close()
+		all, err := io.ReadAll(resp.Body)
+		if err != nil {
+			slog.Debug("WithCloudTraceContext: could not get GCP project ID from metadata server", "err", err)
+			return
+		}
+		projectID = string(all)
 	})
 	return projectID
 }

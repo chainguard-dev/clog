@@ -1,6 +1,7 @@
 package gcp
 
 import (
+	"context"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
@@ -8,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/chainguard-dev/clog"
+	"golang.org/x/net/trace"
 )
 
 func TestTrace(t *testing.T) {
@@ -27,7 +29,7 @@ func TestTrace(t *testing.T) {
 		{"no env set", "", false},
 		{"env set", "my-project", true},
 	} {
-		t.Run(c.name, func(t *testing.T) {
+		t.Run("http "+c.name, func(t *testing.T) {
 			t.Setenv("GOOGLE_CLOUD_PROJECT", c.env)
 
 			// Set up a server that logs a message with trace context added.
@@ -64,6 +66,26 @@ func TestTrace(t *testing.T) {
 			if _, err := http.DefaultClient.Do(req); err != nil {
 				t.Fatal(err)
 			}
+		})
+		t.Run("grpc "+c.name, func(t *testing.T) {
+			t.Setenv("GOOGLE_CLOUD_PROJECT", c.env)
+
+			// Set up a server that logs a message with trace context added.
+			slog.SetDefault(slog.New(NewHandler(slog.LevelDebug)))
+			ctx := trace.NewContext(context.Background(), trace.New("family", "title"))
+
+			_, _ = CloudTraceContextUnaryInterceptor(ctx, nil, nil, func(ctx context.Context, req any) (any, error) {
+				clog.InfoContext(ctx, "hello world")
+				if found := ctx.Value("trace") != nil; found != c.wantTrace {
+					t.Fatalf("got trace context %t, want %t", found, c.wantTrace)
+					if c.wantTrace {
+						if trace := ctx.Value("trace"); !strings.Contains(trace.(string), "/"+c.env+"/") {
+							t.Errorf("got trace context %q, want %q", trace, c.env)
+						}
+					}
+				}
+				return nil, nil
+			})
 		})
 	}
 }
