@@ -1,6 +1,7 @@
 package gcp
 
 import (
+	"context"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
@@ -8,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/chainguard-dev/clog"
+	"google.golang.org/grpc/metadata"
 )
 
 func TestTrace(t *testing.T) {
@@ -27,7 +29,7 @@ func TestTrace(t *testing.T) {
 		{"no env set", "", false},
 		{"env set", "my-project", true},
 	} {
-		t.Run(c.name, func(t *testing.T) {
+		t.Run("http "+c.name, func(t *testing.T) {
 			t.Setenv("GOOGLE_CLOUD_PROJECT", c.env)
 
 			// Set up a server that logs a message with trace context added.
@@ -60,10 +62,30 @@ func TestTrace(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			req.Header.Set("X-Cloud-Trace-Context", "trace/id/yay")
+			req.Header.Set(CloudTraceHeader, "trace/id/yay")
 			if _, err := http.DefaultClient.Do(req); err != nil {
 				t.Fatal(err)
 			}
+		})
+		t.Run("grpc "+c.name, func(t *testing.T) {
+			t.Setenv("GOOGLE_CLOUD_PROJECT", c.env)
+
+			// Set up a server that logs a message with trace context added.
+			slog.SetDefault(slog.New(NewHandler(slog.LevelDebug)))
+			md := metadata.New(map[string]string{"x-cloud-trace-context": "trace/id/yay"})
+			ctx := metadata.NewIncomingContext(context.Background(), md)
+			_, _ = CloudTraceContextUnaryInterceptor(ctx, nil, nil, func(ctx context.Context, req any) (any, error) {
+				clog.InfoContext(ctx, "hello world")
+				if found := ctx.Value("trace") != nil; found != c.wantTrace {
+					t.Fatalf("got trace context %t, want %t", found, c.wantTrace)
+					if c.wantTrace {
+						if trace := ctx.Value("trace"); !strings.Contains(trace.(string), "/"+c.env+"/") {
+							t.Errorf("got trace context %q, want %q", trace, c.env)
+						}
+					}
+				}
+				return nil, nil
+			})
 		})
 	}
 }
