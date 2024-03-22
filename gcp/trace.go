@@ -13,9 +13,11 @@ import (
 	"sync"
 	"time"
 
-	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 )
+
+const CloudTraceHeader = "X-Cloud-Trace-Context"
 
 func insideTest() bool {
 	// Ask runtime.Callers for up to 10 PCs, including runtime.Callers itself.
@@ -95,6 +97,14 @@ func extractProjectID() string {
 	return projectID
 }
 
+func gcpTraceUri(projectID, traceHeader string) string {
+	traceParts := strings.Split(traceHeader, "/")
+	if len(traceParts) > 0 && len(traceParts[0]) > 0 {
+		return fmt.Sprintf("projects/%s/traces/%s", projectID, traceParts[0])
+	}
+	return ""
+}
+
 // WithCloudTraceContext returns an http.handler that adds the GCP Cloud Trace
 // ID to the context. This is used to correlate the structured logs with the
 // request log.
@@ -102,13 +112,9 @@ func WithCloudTraceContext(h http.Handler) http.Handler {
 	projectID := extractProjectID()
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if projectID != "" {
-			var trace string
-			traceHeader := r.Header.Get("X-Cloud-Trace-Context")
-			traceParts := strings.Split(traceHeader, "/")
-			if len(traceParts) > 0 && len(traceParts[0]) > 0 {
-				trace = fmt.Sprintf("projects/%s/traces/%s", projectID, traceParts[0])
+			if trace := gcpTraceUri(projectID, r.Header.Get(CloudTraceHeader)); trace != "" {
+				r = r.WithContext(context.WithValue(r.Context(), "trace", trace))
 			}
-			r = r.WithContext(context.WithValue(r.Context(), "trace", trace))
 		}
 		h.ServeHTTP(w, r)
 	})
@@ -120,11 +126,14 @@ func WithCloudTraceContext(h http.Handler) http.Handler {
 func CloudTraceContextUnaryInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
 	projectID := extractProjectID()
 	if projectID != "" {
-		// extract the trace header from the incoming request
-		span := trace.SpanFromContext(ctx)
-		if traceId := span.SpanContext().TraceID().String(); traceId != "" {
-			trace := fmt.Sprintf("projects/%s/traces/%s", projectID, traceId)
-			ctx = context.WithValue(ctx, "trace", trace)
+		if md, ok := metadata.FromIncomingContext(ctx); ok {
+			traceHeader := ""
+			if x := md.Get(CloudTraceHeader); len(x) > 0 {
+				traceHeader = x[0]
+			}
+			if trace := gcpTraceUri(projectID, traceHeader); trace != "" {
+				ctx = context.WithValue(ctx, "trace", trace)
+			}
 		}
 	}
 	return handler(ctx, req)

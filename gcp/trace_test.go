@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/chainguard-dev/clog"
-	"golang.org/x/net/trace"
+	"google.golang.org/grpc/metadata"
 )
 
 func TestTrace(t *testing.T) {
@@ -62,7 +62,7 @@ func TestTrace(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			req.Header.Set("X-Cloud-Trace-Context", "trace/id/yay")
+			req.Header.Set(CloudTraceHeader, "trace/id/yay")
 			if _, err := http.DefaultClient.Do(req); err != nil {
 				t.Fatal(err)
 			}
@@ -72,8 +72,8 @@ func TestTrace(t *testing.T) {
 
 			// Set up a server that logs a message with trace context added.
 			slog.SetDefault(slog.New(NewHandler(slog.LevelDebug)))
-			ctx := trace.NewContext(context.Background(), trace.New("family", "title"))
-
+			md := metadata.New(map[string]string{"x-cloud-trace-context": "trace/id/yay"})
+			ctx := metadata.NewIncomingContext(context.Background(), md)
 			_, _ = CloudTraceContextUnaryInterceptor(ctx, nil, nil, func(ctx context.Context, req any) (any, error) {
 				clog.InfoContext(ctx, "hello world")
 				if found := ctx.Value("trace") != nil; found != c.wantTrace {
