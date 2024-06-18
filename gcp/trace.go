@@ -96,10 +96,10 @@ func WithCloudTraceContext(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if projectID != "" {
 			var trace string
-			traceHeader := r.Header.Get("X-Cloud-Trace-Context")
-			traceParts := strings.Split(traceHeader, "/")
-			if len(traceParts) > 0 && len(traceParts[0]) > 0 {
-				trace = fmt.Sprintf("projects/%s/traces/%s", projectID, traceParts[0])
+			traceHeader := r.Header.Get("traceparent")
+			traceID := parseTraceFromW3CHeader(traceHeader)
+			if traceID != "" {
+				trace = fmt.Sprintf("projects/%s/traces/%s", projectID, traceID)
 			}
 			r = r.WithContext(context.WithValue(r.Context(), "trace", trace))
 		}
@@ -113,4 +113,12 @@ func traceFromContext(ctx context.Context) string {
 		return ""
 	}
 	return trace.(string)
+}
+
+func parseTraceFromW3CHeader(traceparent string) string {
+	traceParts := strings.Split(traceparent, "-")
+	if len(traceParts) > 1 {
+		return traceParts[1]
+	}
+	return ""
 }
