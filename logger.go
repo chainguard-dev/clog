@@ -53,12 +53,12 @@ func With(args ...any) *Logger {
 
 // With calls [Logger.With] on the logger.
 func (l *Logger) With(args ...any) *Logger {
-	return NewLogger(l.Logger.With(args...))
+	return NewLoggerWithContext(l.context(), l.Logger.With(args...))
 }
 
 // WithGroup calls [Logger.WithGroup] on the default logger.
 func (l *Logger) WithGroup(name string) *Logger {
-	return NewLogger(l.Logger.WithGroup(name))
+	return NewLoggerWithContext(l.context(), l.Logger.WithGroup(name))
 }
 
 func (l *Logger) context() context.Context {
