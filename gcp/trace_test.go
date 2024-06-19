@@ -4,7 +4,6 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 
 	"github.com/chainguard-dev/clog"
@@ -22,10 +21,10 @@ func TestTrace(t *testing.T) {
 	for _, c := range []struct {
 		name      string
 		env       string
-		wantTrace bool
+		wantTrace string
 	}{
-		{"no env set", "", false},
-		{"env set", "my-project", true},
+		{"no env set", "", ""},
+		{"env set", "my-project", "projects/my-project/traces/traceid"},
 	} {
 		t.Run(c.name, func(t *testing.T) {
 			t.Setenv("GOOGLE_CLOUD_PROJECT", c.env)
@@ -39,16 +38,18 @@ func TestTrace(t *testing.T) {
 				// TODO: This doesn't propagate the trace context to the logger.
 				//clog.FromContext(ctx).Info("hello world")
 
-				if r.Header.Get("X-Cloud-Trace-Context") == "" {
+				if r.Header.Get("traceparent") == "" {
 					t.Error("got empty trace context header, want non-empty")
 				}
 
-				if found := ctx.Value("trace") != nil; found != c.wantTrace {
-					t.Fatalf("got trace context %t, want %t", found, c.wantTrace)
-					if c.wantTrace {
-						if trace := ctx.Value("trace"); !strings.Contains(trace.(string), "/"+c.env+"/") {
-							t.Errorf("got trace context %q, want %q", trace, c.env)
-						}
+				traceCtx := ctx.Value("trace")
+				if traceCtx == nil {
+					if c.wantTrace != "" {
+						t.Fatalf("want %s, not found", c.wantTrace)
+					}
+				} else {
+					if traceCtx != c.wantTrace {
+						t.Fatalf("got %s, want %s", traceCtx, c.wantTrace)
 					}
 				}
 			}))
@@ -60,7 +61,7 @@ func TestTrace(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			req.Header.Set("X-Cloud-Trace-Context", "trace/id/yay")
+			req.Header.Set("traceparent", "00-traceid-spanid-01")
 			if _, err := http.DefaultClient.Do(req); err != nil {
 				t.Fatal(err)
 			}
