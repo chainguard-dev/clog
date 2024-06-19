@@ -113,3 +113,16 @@ func TestLoggerPC(t *testing.T) {
 		t.Errorf("want %v, got %v", want, got)
 	}
 }
+
+func TestWith(t *testing.T) {
+	ctx := context.WithValue(context.Background(), "test", "test")
+	log := NewLoggerWithContext(ctx, nil)
+	withed := log.With("a", "b")
+	if want := withed.ctx; want != ctx {
+		t.Errorf("want %v, got %v", want, ctx)
+	}
+	withed = log.WithGroup("a")
+	if want := withed.ctx; want != ctx {
+		t.Errorf("want %v, got %v", want, ctx)
+	}
+}
