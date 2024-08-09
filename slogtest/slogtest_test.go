@@ -1,13 +1,14 @@
-package slogtest
+package slogtest_test
 
 import (
 	"testing"
 
 	"github.com/chainguard-dev/clog"
+	"github.com/chainguard-dev/clog/slogtest"
 )
 
 func TestSlogTest(t *testing.T) {
-	ctx := TestContextWithLogger(t)
+	ctx := slogtest.Context(t)
 
 	clog.FromContext(ctx).With("foo", "bar").Infof("hello world")
 	clog.FromContext(ctx).With("bar", "baz").Infof("me again")
