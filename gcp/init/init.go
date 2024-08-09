@@ -2,10 +2,19 @@ package init
 
 import (
 	"log/slog"
+	"os"
 
+	"github.com/chainguard-dev/clog"
 	"github.com/chainguard-dev/clog/gcp"
 )
 
 // Set up structured logging at Info+ level.
-// TODO: Make the level configurable by env var or flag; or just remove the init package.
-func init() { slog.SetDefault(slog.New(gcp.NewHandler(slog.LevelInfo))) }
+func init() {
+	level := slog.LevelInfo
+	if e, ok := os.LookupEnv("LOG_LEVEL"); ok {
+		if err := level.UnmarshalText([]byte(e)); err != nil {
+			clog.Fatalf("slog: invalid log level: %v", err)
+		}
+	}
+	slog.SetDefault(slog.New(gcp.NewHandler(level)))
+}
