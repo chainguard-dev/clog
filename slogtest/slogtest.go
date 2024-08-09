@@ -53,15 +53,14 @@ func TestLoggerWithOptions(t Logger, opts *slog.HandlerOptions) *clog.Logger {
 }
 
 // Context returns a context with a logger to be used in tests.
-// This is equivalent to TestContextWithLogger.
 func Context(t Logger) context.Context {
-	return TestContextWithLogger(t)
+	return clog.WithLogger(context.Background(), TestLogger(t))
 }
 
 // TestContextWithLogger returns a context with a logger to be used in tests
-func TestContextWithLogger(t Logger) context.Context {
-	return clog.WithLogger(context.Background(), TestLogger(t))
-}
+//
+// Deprecated: Use Context instead.
+func TestContextWithLogger(t Logger) context.Context { return Context(t) }
 
 // RemoveTime removes the top-level time attribute.
 // It is intended to be used as a ReplaceAttr function,
