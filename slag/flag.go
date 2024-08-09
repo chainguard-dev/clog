@@ -1,3 +1,19 @@
+// Package slag provides a method for setting the log level from the command line.
+//
+//	func main() {
+//		var level slag.Level
+//		flag.Var(&level, "log-level", "log level")
+//		flag.Parse()
+//		slog.SetDefault(slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: &level})))
+//	}
+//
+// See [./examples/logger](./examples/logger) for a full example.
+//
+// This allows the log level to be set from the command line:
+//
+//	$ ./myprogram -log-level=debug
+//
+// The slag.Level type is a wrapper around slog.Level that implements the flag.Value interface.
 package slag
 
 import "log/slog"
