@@ -5,34 +5,33 @@ import (
 	"io"
 	"log/slog"
 	"strings"
+	"testing"
 
 	"github.com/chainguard-dev/clog"
 )
 
-var (
-	_ io.Writer = &logAdapter{}
-)
+var _ io.Writer = &logAdapter{}
 
-type logAdapter struct {
-	l Logger
-}
+type logAdapter struct{ l Logger }
 
 func (l *logAdapter) Write(b []byte) (int, error) {
-	l.l.Helper()
 	l.l.Log(strings.TrimSuffix(string(b), "\n"))
 	return len(b), nil
 }
 
-type Logger interface {
-	Log(args ...any)
-	Logf(format string, args ...any)
-	Helper()
-}
+var _ Logger = (*testing.T)(nil)
+var _ Logger = (*testing.B)(nil)
+var _ Logger = (*testing.F)(nil)
+
+type Logger interface{ Log(args ...any) }
 
 // TestLogger gets a logger to use in unit and end to end tests.
 // This logger is configured to log at debug level.
 func TestLogger(t Logger) *clog.Logger {
-	return clog.New(slog.NewTextHandler(&logAdapter{l: t}, &slog.HandlerOptions{AddSource: true}))
+	return clog.New(slog.NewTextHandler(&logAdapter{l: t}, &slog.HandlerOptions{
+		AddSource:   true,
+		ReplaceAttr: RemoveTime,
+	}))
 }
 
 // TestLoggerWithOptions gets a logger to use in unit and end to end tests.
