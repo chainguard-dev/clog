@@ -1,3 +1,16 @@
+// Package slogtest provides utilities for emitting test logs using clog.
+//
+//	func TestExample(t *testing.T) {
+//		ctx := slogtest.Context(t)
+//		clog.FromContext(ctx).With("foo", "bar").Info("hello world")
+//	}
+//
+// This produces the following test output:
+//
+//	=== RUN   TestExample
+//		slogtest.go:24: level=INFO source=/path/to/example_test.go:13 msg="hello world" foo=bar
+//
+// This package is intended to be used in tests only.
 package slogtest
 
 import (
