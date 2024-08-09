@@ -42,6 +42,7 @@ type Logger interface{ Log(args ...any) }
 // This logger is configured to log at debug level.
 func TestLogger(t Logger) *clog.Logger {
 	return clog.New(slog.NewTextHandler(&logAdapter{l: t}, &slog.HandlerOptions{
+		Level:       slog.LevelDebug,
 		AddSource:   true,
 		ReplaceAttr: RemoveTime,
 	}))
