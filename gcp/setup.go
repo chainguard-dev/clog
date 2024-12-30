@@ -26,8 +26,8 @@ func NewHandler(level slog.Level) *Handler {
 				a.Key = "logging.googleapis.com/sourceLocation"
 			} else if a.Key == slog.LevelKey {
 				a.Key = "severity"
-				level := a.Value.Any().(slog.Level)
-				if level == LevelCritical {
+				level, ok := a.Value.Any().(slog.Level)
+				if ok && level == LevelCritical {
 					a.Value = slog.StringValue("CRITICAL")
 				}
 			}
