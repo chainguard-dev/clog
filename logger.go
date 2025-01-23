@@ -17,7 +17,7 @@ type Logger struct {
 
 // DefaultLogger returns a new logger that uses the default [slog.Logger].
 func DefaultLogger() *Logger {
-	return NewLogger(slog.Default())
+	return NewLogger(nil)
 }
 
 // NewLogger returns a new logger that wraps the given [slog.Logger] with the default context.
@@ -28,7 +28,11 @@ func NewLogger(l *slog.Logger) *Logger {
 // NewLoggerWithContext returns a new logger that wraps the given [slog.Logger].
 func NewLoggerWithContext(ctx context.Context, l *slog.Logger) *Logger {
 	if l == nil {
-		l = slog.Default()
+		l = slog.New(NewHandler(slog.Default().Handler()))
+	}
+	// Attach any existing context values onto the logger.
+	for k, v := range get(ctx) {
+		l = l.With(k, v)
 	}
 	return &Logger{
 		ctx:    ctx,
@@ -38,12 +42,12 @@ func NewLoggerWithContext(ctx context.Context, l *slog.Logger) *Logger {
 
 // New returns a new logger that wraps the given [slog.Handler].
 func New(h slog.Handler) *Logger {
-	return NewLogger(slog.New(h))
+	return NewWithContext(context.Background(), h)
 }
 
 // New returns a new logger that wraps the given [slog.Handler].
 func NewWithContext(ctx context.Context, h slog.Handler) *Logger {
-	return NewLoggerWithContext(ctx, slog.New(h))
+	return NewLoggerWithContext(ctx, slog.New(NewHandler(h)))
 }
 
 // With calls [Logger.With] on the default logger.
@@ -180,5 +184,5 @@ func FromContext(ctx context.Context) *Logger {
 			Logger: logger,
 		}
 	}
-	return NewLoggerWithContext(ctx, slog.Default())
+	return NewLoggerWithContext(ctx, nil)
 }
