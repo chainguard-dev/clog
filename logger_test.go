@@ -126,3 +126,53 @@ func TestWith(t *testing.T) {
 		t.Errorf("want %v, got %v", want, ctx)
 	}
 }
+
+func TestDefaultHandler(t *testing.T) {
+	old := slog.Default()
+	defer func() {
+		slog.SetDefault(old)
+	}()
+
+	b := new(bytes.Buffer)
+	slog.SetDefault(slog.New(slog.NewJSONHandler(b, testopts)))
+
+	t.Run("Info", func(t *testing.T) {
+		FromContext(WithValues(context.Background(), "a", "b")).Info("")
+		want := map[string]any{
+			"level": "INFO",
+			"msg":   "",
+			"a":     "b",
+		}
+		var got map[string]any
+		if err := json.Unmarshal(b.Bytes(), &got); err != nil {
+			t.Fatal(err)
+		}
+		if !reflect.DeepEqual(want, got) {
+			t.Errorf("want %v, got %v", want, got)
+		}
+	})
+
+	b.Reset()
+
+	t.Run("InfoContext", func(t *testing.T) {
+		// Set logger with original value
+		ctx := WithValues(context.Background(), "a", "b")
+		logger := FromContext(ctx)
+
+		// Override value in request context - we expect this to overwrite the original value set in the logger
+		logger.InfoContext(WithValues(ctx, "a", "c"), "")
+
+		want := map[string]any{
+			"level": "INFO",
+			"msg":   "",
+			"a":     "c",
+		}
+		var got map[string]any
+		if err := json.Unmarshal(b.Bytes(), &got); err != nil {
+			t.Fatal(err)
+		}
+		if !reflect.DeepEqual(want, got) {
+			t.Errorf("want %v, got %v", want, got)
+		}
+	})
+}
