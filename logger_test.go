@@ -175,4 +175,15 @@ func TestDefaultHandler(t *testing.T) {
 			t.Errorf("want %v, got %v", want, got)
 		}
 	})
+
+	b.Reset()
+
+	t.Run("Debug - no log", func(t *testing.T) {
+		logger := FromContext(context.Background())
+		logger.Debug("asdf")
+
+		if b.Len() != 0 {
+			t.Errorf("want empty, got %q", b.String())
+		}
+	})
 }
