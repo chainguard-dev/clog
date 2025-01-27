@@ -70,7 +70,7 @@ func (h Handler) inner() slog.Handler {
 }
 
 func (h Handler) Enabled(ctx context.Context, level slog.Level) bool {
-	return true
+	return h.inner().Enabled(ctx, level)
 }
 
 func (h Handler) Handle(ctx context.Context, r slog.Record) error {
