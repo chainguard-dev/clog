@@ -187,3 +187,59 @@ func TestDefaultHandler(t *testing.T) {
 		}
 	})
 }
+
+func TestContext(t *testing.T) {
+	old := slog.Default()
+	t.Cleanup(func() {
+		slog.SetDefault(old)
+	})
+
+	b := new(bytes.Buffer)
+	slog.SetDefault(slog.New(slog.NewJSONHandler(b, testopts)))
+
+	msg := "hello world"
+	want := map[string]any{
+		"level": "INFO",
+		"msg":   msg,
+		"a":     "b",
+	}
+
+	ctx := WithValues(context.Background(), "a", "b")
+	// These should all give the same output and be functionally equivalent.
+	for _, tc := range []struct {
+		name string
+		fn   func()
+	}{
+		{
+			name: "clog.InfoContext",
+			fn: func() {
+				InfoContext(ctx, msg)
+			},
+		},
+		{
+			name: "clog.FromContext.Info",
+			fn: func() {
+				FromContext(ctx).Info(msg)
+			},
+		},
+		{
+			name: "clog.FromContext.InfoContext",
+			fn: func() {
+				FromContext(ctx).InfoContext(ctx, msg)
+			},
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			b.Reset()
+			tc.fn()
+
+			var got map[string]any
+			if err := json.Unmarshal(b.Bytes(), &got); err != nil {
+				t.Fatal(err)
+			}
+			if !reflect.DeepEqual(want, got) {
+				t.Errorf("want %v, got %v", want, got)
+			}
+		})
+	}
+}
