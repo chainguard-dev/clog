@@ -6,9 +6,10 @@ import (
 )
 
 var (
-	ctxKey = struct{}{}
+	ctxKey = key{}
 )
 
+type key struct{}
 type ctxVal map[string]any
 
 // With returns a new context with the given values.
