@@ -41,7 +41,7 @@ func New(h slog.Handler) *Logger {
 	return NewWithContext(context.Background(), h)
 }
 
-// New returns a new logger that wraps the given [slog.Handler].
+// NewWithContext returns a new logger that wraps the given [slog.Handler] using the given context.
 func NewWithContext(ctx context.Context, h slog.Handler) *Logger {
 	return NewLoggerWithContext(ctx, slog.New(NewHandler(h)))
 }
@@ -68,9 +68,9 @@ func (l *Logger) context() context.Context {
 	return l.ctx
 }
 
-// Infof logs at LevelInfo with the given format and arguments.
-func (l *Logger) Info(format string, args ...any) {
-	wrap(l.context(), l, slog.LevelInfo, format, args...)
+// Info logs at LevelInfo with the given message and treats the args as key/value pairs to form log message attributes.
+func (l *Logger) Info(msg string, args ...any) {
+	wrap(l.context(), l, slog.LevelInfo, msg, args...)
 }
 
 // Infof logs at LevelInfo with the given format and arguments.
@@ -78,14 +78,14 @@ func (l *Logger) Infof(format string, args ...any) {
 	wrapf(l.context(), l, slog.LevelInfo, format, args...)
 }
 
-// InfoContextf logs at LevelInfo with the given context, format and arguments.
+// InfoContextf logs at LevelInfo with the given context, format, and arguments.
 func (l *Logger) InfoContextf(ctx context.Context, format string, args ...any) {
 	wrapf(ctx, l, slog.LevelInfo, format, args...)
 }
 
-// Warn logs at LevelWarn with the given format and arguments.
-func (l *Logger) Warn(format string, args ...any) {
-	wrap(l.context(), l, slog.LevelWarn, format, args...)
+// Warn logs at LevelWarn with the given message and treats the args as key/value pairs to form log message attributes.
+func (l *Logger) Warn(msg string, args ...any) {
+	wrap(l.context(), l, slog.LevelWarn, msg, args...)
 }
 
 // Warnf logs at LevelWarn with the given format and arguments.
@@ -98,9 +98,9 @@ func (l *Logger) WarnContextf(ctx context.Context, format string, args ...any) {
 	wrapf(ctx, l, slog.LevelWarn, format, args...)
 }
 
-// Error logs at LevelError with the given format and arguments.
-func (l *Logger) Error(format string, args ...any) {
-	wrap(l.context(), l, slog.LevelError, format, args...)
+// Error logs at LevelError with the given message and treats the args as key/value pairs to form log message attributes.
+func (l *Logger) Error(msg string, args ...any) {
+	wrap(l.context(), l, slog.LevelError, msg, args...)
 }
 
 // Errorf logs at LevelError with the given format and arguments.
@@ -113,9 +113,9 @@ func (l *Logger) ErrorContextf(ctx context.Context, format string, args ...any) 
 	wrapf(ctx, l, slog.LevelError, format, args...)
 }
 
-// Debug logs at LevelDebug with the given format and arguments.
-func (l *Logger) Debug(format string, args ...any) {
-	wrap(l.context(), l, slog.LevelDebug, format, args...)
+// Debug logs at LevelDebug with the given message and treats the args as key/value pairs to form log message attributes.
+func (l *Logger) Debug(msg string, args ...any) {
+	wrap(l.context(), l, slog.LevelDebug, msg, args...)
 }
 
 // Debugf logs at LevelDebug with the given format and arguments.
@@ -128,25 +128,25 @@ func (l *Logger) DebugContextf(ctx context.Context, format string, args ...any) 
 	wrapf(ctx, l, slog.LevelDebug, format, args...)
 }
 
-// Fatalf logs at LevelError with the given format and arguments, then exits.
-func (l *Logger) Fatalf(format string, args ...any) {
-	wrapf(l.context(), l, slog.LevelError, format, args...)
-	os.Exit(1)
-}
-
 // Fatal logs at LevelError with the given message, then exits.
 func (l *Logger) Fatal(msg string, args ...any) {
 	wrap(l.context(), l, slog.LevelError, msg, args...)
 	os.Exit(1)
 }
 
-// FatalfContextf logs at LevelError with the given context, format and arguments, then exits.
+// Fatalf logs at LevelError with the given format and arguments, then exits.
+func (l *Logger) Fatalf(format string, args ...any) {
+	wrapf(l.context(), l, slog.LevelError, format, args...)
+	os.Exit(1)
+}
+
+// FatalContextf logs at LevelError with the given context, format and arguments, then exits.
 func (l *Logger) FatalContextf(ctx context.Context, format string, args ...any) {
 	wrapf(ctx, l, slog.LevelError, format, args...)
 	os.Exit(1)
 }
 
-// FatalfContext logs at LevelError with the given context and message, then exits.
+// FatalContext logs at LevelError with the given context and message, then exits.
 func (l *Logger) FatalContext(ctx context.Context, msg string, args ...any) {
 	wrap(ctx, l, slog.LevelError, msg, args...)
 	os.Exit(1)
