@@ -11,6 +11,11 @@
 //		slogtest.go:24: level=INFO source=/path/to/example_test.go:13 msg="hello world" foo=bar
 //
 // This package is intended to be used in tests only.
+//
+// In Go 1.24, *testing.T etc added `t.Context()` methods, which return a
+// context.Context to be used in tests. You can use `clog.FromContext(t.Context())`
+// to get a logger in tests instead, and configure the default logger to get the
+// same logging behavior as `slogtest.Context(t)`.
 package slogtest
 
 import (
@@ -36,7 +41,10 @@ var _ Logger = (*testing.T)(nil)
 var _ Logger = (*testing.B)(nil)
 var _ Logger = (*testing.F)(nil)
 
-type Logger interface{ Log(args ...any) }
+type Logger interface {
+	Log(args ...any)
+	Context() context.Context
+}
 
 // TestLogger gets a logger to use in unit and end to end tests.
 // This logger is configured to log at debug level.
@@ -55,7 +63,7 @@ func TestLoggerWithOptions(t Logger, opts *slog.HandlerOptions) *clog.Logger {
 
 // Context returns a context with a logger to be used in tests.
 func Context(t Logger) context.Context {
-	return clog.WithLogger(context.Background(), TestLogger(t))
+	return clog.WithLogger(t.Context(), TestLogger(t))
 }
 
 // TestContextWithLogger returns a context with a logger to be used in tests
