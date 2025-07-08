@@ -41,7 +41,7 @@ func (h *Handler) Enabled(ctx context.Context, level slog.Level) bool {
 }
 
 func (h *Handler) Handle(ctx context.Context, rec slog.Record) error {
-	if trace := traceFromContext(ctx); trace != "" {
+	if trace := TraceFromContext(ctx); trace != "" {
 		rec = rec.Clone()
 		// Add trace ID	to the record so it is correlated with the request log
 		// See https://cloud.google.com/trace/docs/trace-log-integration

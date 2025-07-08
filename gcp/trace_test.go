@@ -42,15 +42,9 @@ func TestTrace(t *testing.T) {
 					t.Error("got empty trace context header, want non-empty")
 				}
 
-				traceCtx := ctx.Value("trace")
-				if traceCtx == nil {
-					if c.wantTrace != "" {
-						t.Fatalf("want %s, not found", c.wantTrace)
-					}
-				} else {
-					if traceCtx != c.wantTrace {
-						t.Fatalf("got %s, want %s", traceCtx, c.wantTrace)
-					}
+				traceCtx := TraceFromContext(ctx)
+				if traceCtx != c.wantTrace {
+					t.Fatalf("got %s, want %s", traceCtx, c.wantTrace)
 				}
 			}))
 			srv := httptest.NewServer(h)

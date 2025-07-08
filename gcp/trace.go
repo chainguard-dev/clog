@@ -101,14 +101,25 @@ func WithCloudTraceContext(h http.Handler) http.Handler {
 			if traceID != "" {
 				trace = fmt.Sprintf("projects/%s/traces/%s", projectID, traceID)
 			}
-			r = r.WithContext(context.WithValue(r.Context(), "trace", trace))
+			r = r.WithContext(WithTrace(r.Context(), trace))
 		}
 		h.ServeHTTP(w, r)
 	})
 }
 
-func traceFromContext(ctx context.Context) string {
-	trace := ctx.Value("trace")
+type traceKey struct{}
+
+// WithTrace adds a trace information to the context.
+func WithTrace(ctx context.Context, trace string) context.Context {
+	if trace == "" {
+		return ctx
+	}
+	return context.WithValue(ctx, traceKey{}, trace)
+}
+
+// TraceFromContext retrieves the trace information from the context.
+func TraceFromContext(ctx context.Context) string {
+	trace := ctx.Value(traceKey{})
 	if trace == nil {
 		return ""
 	}
