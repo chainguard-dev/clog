@@ -2,6 +2,7 @@ package gcp
 
 import (
 	"context"
+	"io"
 	"log/slog"
 	"os"
 )
@@ -15,8 +16,14 @@ type Handler struct {
 	handler slog.Handler
 }
 
+// NewHandler returns a new Handler that writes to stderr.
 func NewHandler(level slog.Level) *Handler {
-	return &Handler{handler: slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{
+	return NewHandlerForWriter(os.Stderr, level)
+}
+
+// NewHandlerForWriter returns a new Handler that writes to the given writer.
+func NewHandlerForWriter(w io.Writer, level slog.Level) *Handler {
+	return &Handler{handler: slog.NewJSONHandler(w, &slog.HandlerOptions{
 		AddSource: true,
 		Level:     level,
 		ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
