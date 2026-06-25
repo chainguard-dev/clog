@@ -34,8 +34,14 @@ func NewHandlerForWriter(w io.Writer, level slog.Level) *Handler {
 			} else if a.Key == slog.LevelKey {
 				a.Key = "severity"
 				level, ok := a.Value.Any().(slog.Level)
-				if ok && level == LevelCritical {
-					a.Value = slog.StringValue("CRITICAL")
+				if ok {
+				switch {
+					case level == LevelCritical:
+						a.Value = slog.StringValue("CRITICAL")
+					case level == slog.LevelWarn:
+						// Convert WARN -> WARNING for Cloud Batch
+						a.Value = slog.StringValue("WARNING")
+					}
 				}
 			}
 			return a
