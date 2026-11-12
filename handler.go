@@ -53,6 +53,10 @@ func get(ctx context.Context) ctxVal {
 
 // Handler is a slog.Handler that adds context values to the log record.
 // Values are added via [WithValues].
+//
+// Use one Handler in a chain of handlers, as the outermost handler. A Handler
+// directly around another Handler adds the values once, but two Handlers
+// separated by a different handler each add them.
 type Handler struct {
 	h slog.Handler
 }
@@ -64,10 +68,20 @@ func NewHandler(h slog.Handler) Handler {
 }
 
 func (h Handler) inner() slog.Handler {
-	if h.h == nil {
-		return slog.Default().Handler()
+	next := h.h
+	if next == nil {
+		next = slog.Default().Handler()
 	}
-	return h.h
+
+	// A nested Handler would add the context values to the record again.
+	switch nested := next.(type) {
+	case Handler:
+		return nested.inner()
+	case *Handler:
+		return nested.inner()
+	}
+
+	return next
 }
 
 func (h Handler) Enabled(ctx context.Context, level slog.Level) bool {
